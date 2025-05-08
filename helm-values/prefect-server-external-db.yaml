@@ -1,0 +1,376 @@
+## Common parameters
+# -- partially overrides common.names.name
+nameOverride: ""
+# -- fully override common.names.fullname
+fullnameOverride: "prefect-server"
+# -- fully override common.names.namespace
+namespaceOverride: ""
+# -- labels to add to all deployed objects
+commonLabels: {}
+# -- annotations to add to all deployed objects
+commonAnnotations: {}
+
+## Global Deployment Configuration
+global:
+  prefect:
+    image:
+      # -- prefect image repository
+      repository: prefecthq/prefect
+      # -- prefect image tag (immutable tags are recommended)
+      prefectTag: 3.4.0-python3.11
+      # -- prefect image pull policy
+      pullPolicy: IfNotPresent
+      # -- prefect image pull secrets
+      pullSecrets: []
+
+    # -- array with environment variables to add to all deployments
+    env: []
+
+## Server Deployment Configuration
+server:
+  # ref: https://docs.prefect.io/v3/develop/settings-and-profiles#security-settings
+  basicAuth:
+    # -- enable basic auth for the server, for an administrator/password combination
+    enabled: false
+    # -- basic auth credentials in the format admin:<your-password> (no brackets)
+    authString: "admin:pass"
+    # -- name of existing secret containing basic auth credentials. takes precedence over authString. must contain a key `auth-string` with the value of the auth string
+    existingSecret: ""
+
+  # -- priority class name to use for the server pods
+  priorityClassName: ""
+
+  # -- sets PREFECT_SERVER_API_BASE_PATH
+  apiBasePath: "/api"
+
+  # -- sets PREFECT_DEBUG_MODE
+  debug: false
+
+  # -- sets PREFECT_LOGGING_SERVER_LEVEL
+  loggingLevel: WARNING
+
+  uiConfig:
+    # -- sets PREFECT_UI_API_URL; If you want to connect to the UI from somewhere external to the cluster, you need to set this value to the ingress URL
+    prefectUiApiUrl: "http://prefect.example.com/api"
+    # -- sets PREFECT_UI_STATIC_DIRECTORY
+    prefectUiStaticDirectory: "/ui_build"
+
+  # -- array with environment variables to add to server deployment
+  env: []
+
+  # -- Custom container command arguments
+  args: []
+
+  # -- Custom container entrypoint
+  command: []
+
+  # -- the number of old ReplicaSets to retain to allow rollback
+  revisionHistoryLimit: 10
+
+  # Autoscaling configuration
+  autoscaling:
+    # -- enable autoscaling for server
+    enabled: false
+    # -- minimum number of server replicas
+    minReplicas: 1
+    # -- maximum number of server replicas
+    maxReplicas: 100
+    # -- target CPU utilization percentage
+    targetCPU: 80
+    # -- target Memory utilization percentage
+    targetMemory: 80
+
+  # -- number of server replicas to deploy
+  replicaCount: 1
+
+  resources:
+    # -- the requested resources for the server container
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    # -- the requested limits for the server container
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  livenessProbe:
+    enabled: true
+    config:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
+  readinessProbe:
+    enabled: true
+    config:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
+
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  podSecurityContext:
+    # -- set server pod's security context runAsUser
+    runAsUser: 1001
+    # -- set server pod's security context runAsNonRoot
+    runAsNonRoot: true
+    # -- set server pod's security context fsGroup
+    fsGroup: 1001
+    # -- set server pod's seccomp profile
+    seccompProfile:
+      type: RuntimeDefault
+
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  containerSecurityContext:
+    # -- set server containers' security context runAsUser
+    runAsUser: 1001
+    # -- set server containers' security context runAsNonRoot
+    runAsNonRoot: true
+    # -- set server containers' security context readOnlyRootFilesystem
+    readOnlyRootFilesystem: true
+    # -- set server containers' security context allowPrivilegeEscalation
+    allowPrivilegeEscalation: false
+    # -- set server container's security context capabilities
+    capabilities: {}
+
+  # -- extra labels for server pod
+  podLabels: {}
+
+  # -- extra annotations for server pod
+  podAnnotations: {}
+
+  # -- affinity for server pods assignment
+  affinity: {}
+
+  # -- node labels for server pods assignment
+  nodeSelector: {}
+
+  # -- tolerations for server pods assignment
+  tolerations: []
+
+  # -- name of existing ConfigMap containing extra env vars to add to server nodes
+  extraEnvVarsCM: ""
+
+  # -- name of existing Secret containing extra env vars to add to server nodes
+  extraEnvVarsSecret: ""
+
+  # -- additional sidecar containers
+  extraContainers: []
+
+  # -- array with extra volumes for the server pod
+  extraVolumes: []
+
+  # -- array with extra volumeMounts for the server pod
+  extraVolumeMounts: []
+
+  # -- array with extra Arguments for the server container to start with
+  extraArgs: []
+
+## Background Services Deployment Configuration
+backgroundServices:
+  # -- Run background services in a separate deployment
+  runAsSeparateDeployment: false
+
+  # -- priority class name to use for the background-services pods
+  priorityClassName: ""
+
+  # -- sets PREFECT_DEBUG_MODE
+  debug: false
+
+  # -- sets PREFECT_LOGGING_SERVER_LEVEL
+  loggingLevel: WARNING
+
+  # -- array with environment variables to add to background-services container
+  env: []
+
+  # -- Custom container command arguments
+  args: []
+
+  # -- Custom container entrypoint
+  command: []
+
+  # -- the number of old ReplicaSets to retain to allow rollback
+  revisionHistoryLimit: 10
+
+  resources:
+    # -- the requested resources for the background-services container
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    # -- the requested limits for the background-services container
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  podSecurityContext:
+    # -- set background-services pod's security context runAsUser
+    runAsUser: 1001
+    # -- set background-services pod's security context runAsNonRoot
+    runAsNonRoot: true
+    # -- set background-services pod's security context fsGroup
+    fsGroup: 1001
+
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  containerSecurityContext:
+    # -- set background-services containers' security context runAsUser
+    runAsUser: 1001
+    # -- set background-services containers' security context runAsNonRoot
+    runAsNonRoot: true
+    # -- set background-services containers' security context readOnlyRootFilesystem
+    readOnlyRootFilesystem: true
+    # -- set background-services containers' security context allowPrivilegeEscalation
+    allowPrivilegeEscalation: false
+    # -- set background-services container's security context capabilities
+    capabilities: {}
+
+  # -- extra labels for background-services pod
+  podLabels: {}
+
+  # -- extra annotations for background-services pod
+  podAnnotations: {}
+
+  # -- affinity for background-services pod assignment
+  affinity: {}
+
+  # -- node labels for background-services pod assignment
+  nodeSelector: {}
+
+  # -- tolerations for background-services pod assignment
+  tolerations: []
+
+  # -- name of existing ConfigMap containing extra env vars to add to background-services pod
+  extraEnvVarsCM: ""
+
+  # -- name of existing Secret containing extra env vars to add to background-services pod
+  extraEnvVarsSecret: ""
+
+  # -- additional sidecar containers
+  extraContainers: []
+
+  # -- array with extra volumes for the background-services pod
+  extraVolumes: []
+
+  # -- array with extra volumeMounts for the background-services pod
+  extraVolumeMounts: []
+
+  ## Background Services Service Account configuration
+  serviceAccount:
+    # -- specifies whether a service account should be created
+    create: true
+    # -- the name of the service account to use. if not set and create is true, a name is generated using the common.names.fullname template with "-background-services" appended
+    name: ""
+    # -- additional service account annotations (evaluated as a template)
+    annotations: {}
+
+## Server Service Account configuration
+serviceAccount:
+  # -- specifies whether a service account should be created
+  create: true
+  # -- the name of the service account to use. if not set and create is true, a name is generated using the common.names.fullname template
+  name: ""
+  # -- additional service account annotations (evaluated as a template)
+  annotations: {}
+
+## Service configuration
+service:
+  # -- service port
+  port: 4200
+  # -- target port of the server pod; also sets PREFECT_SERVER_API_PORT
+  targetPort: 4200
+  # -- service port if defining service as type nodeport
+  nodePort: ""
+
+  extraPorts: []
+
+  # -- service type
+  type: ClusterIP
+  # -- service Cluster IP
+  clusterIP: ""
+
+  # -- service external traffic policy
+  externalTrafficPolicy: Cluster
+  # -- additional custom annotations for server service
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  # -- enable ingress record generation for server
+  enabled: true
+
+  # -- port for the ingress' main path
+  servicePort: server-svc-port
+
+  # -- IngressClass that will be used to implement the Ingress (Kubernetes 1.18+)
+  className: "nginx"
+  host:
+    # -- default host for the ingress record
+    hostname: prefect.example.com
+    # -- default path for the ingress record
+    path: /
+    # -- ingress path type
+    pathType: ImplementationSpecific
+
+  # -- additional annotations for the Ingress resource
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+
+  # -- enable TLS configuration for the host defined at `ingress.host.hostname` parameter
+  tls: true
+  # -- create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  selfSigned: false
+
+  # -- an array with additional hostname(s) to be covered with the ingress record
+  extraHosts: []
+
+  # -- an array with additional arbitrary paths that may need to be added to the ingress under the main host
+  extraPaths: []
+
+  # -- an array with additional tls configuration to be added to the ingress record
+  extraTls: []
+
+  # -- additional rules to be covered with this ingress record
+  extraRules: []
+
+# Secret configuration
+secret:
+  # -- whether to create a Secret containing the PostgreSQL connection string
+  # Set to false if you want to use an existing secret
+  create: false
+  # -- name for the Secret containing the PostgreSQL connection string
+  # To provide an existing Secret, provide a name and set `create=false`
+  name: "prefect-db-credentials"
+  # The following fields are only used if create is true
+  # -- username for the PostgreSQL connection string
+  username: ""
+  # -- password for the PostgreSQL connection string
+  password: ""
+  # -- host for the PostgreSQL connection string
+  host: ""
+  # -- port for the PostgreSQL connection string
+  port: ""
+  # -- database for the PostgreSQL connection string
+  database: ""
+
+# SQLite configuration
+sqlite:
+  # -- enable use of the embedded SQLite database
+  enabled: false
+
+  persistence:
+    # -- enable SQLite data persistence using PVC
+    enabled: true
+    # -- size for the PVC
+    size: 1Gi
+    # -- storage class name for the PVC
+    storageClassName: ""
+
+# PostgreSQL subchart - default overrides
+postgresql:
+  # -- enable use of bitnami/postgresql subchart
+  # Set to false to use external PostgreSQL
+  enabled: false
